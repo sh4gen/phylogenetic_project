@@ -12,19 +12,27 @@ names_set = set()
 
 session = requests.Session()
 
-total_time = 0
+
 start_time = time.time()
 max_time = 600
 
 num_iterations = 0
-total_iterations_time = 0
-total_request_time = 0
-total_parse_time = 0
-total_add_time = 0
-item_counter = 0
+
+timer = {
+    "parse": [0.0, 0.0],
+    "request": [0.0, 0.0],
+    "total": [0.0, 0.0],
+}
+
+times = {
+    "parse": 0.0,
+    "request": 0.0,
+    "total": 0.0,
+}
 
 while len(parse_set) != 0 and (time.time() - start_time) < max_time:
-    iteration_start_time = time.time() # TIMER
+    
+    timer["total"][0] = time.time()
     
     url = parse_set.pop()
 
@@ -32,20 +40,20 @@ while len(parse_set) != 0 and (time.time() - start_time) < max_time:
         continue
 
     try:
-        request_start_time = time.time() # TIMER
+        timer["request"][0] = time.time()
 
         response = session.get(url)
         response.raise_for_status()
 
-        request_end_time = time.time() # TIMER
-        request_time = request_end_time - request_start_time
-        total_request_time += request_time
+        timer["request"][1] = time.time()
 
-        parsing_start_time = time.time() # TIMER
+        timer["parse"][0] = time.time()
 
         soup = BeautifulSoup(response.content, "html.parser")
         ul_tag = soup.find('ul', attrs={'compact': ''})
+
         if ul_tag is not None:
+
             circle_items = ul_tag.find_all('li', attrs={'type': 'circle'})
             disc_items = ul_tag.find_all('li', attrs={'type': 'disc'})
             square_items = ul_tag.find_all('li', attrs={'type': 'square'})
@@ -58,53 +66,45 @@ while len(parse_set) != 0 and (time.time() - start_time) < max_time:
                     text = a_tag.text.strip()
                     href = a_tag.get('href')
 
-                    parsing_end_time = time.time() # TIMER
-                    parse_time = parsing_end_time - parsing_start_time
-                    total_parse_time += parse_time
-
                     word_count = text.count(' ') + 1
                     full_url = urljoin(url, href)
 
                     if full_url not in visited_set:
-                        add_start_time = time.time() # TIMER
                         new_urls.append(full_url)
 
                     if text not in names_set and word_count == 2 and text[0].isupper():
-                        print(text)
                         names_set.add(text)
-
-                    add_end_time = time.time() # TIMER
-                    add_time = add_end_time - add_start_time
-                    total_add_time += add_time
  
             parse_set.update(new_urls)        
-            item_counter += len(new_urls)
             visited_set.add(url)
+
+        timer["parse"][1] = time.time()
 
     except requests.exceptions.RequestException as e:
         print("Error fetching URL:", url)
         print(e)
 
-    iteration_end_time = time.time() # TIMER
-    iteration_time = iteration_end_time - iteration_start_time
-    total_iterations_time += iteration_time
-
+    timer["total"][1] = time.time()
     num_iterations += 1
 
-end_time = time.time()
-total_time = end_time - start_time
+    for key in timer:
+        times[key] += timer[key][1] - timer[key][0]
+
+    if num_iterations % 10 == 0:
+        print("Total Time:", times["total"])
+        print("Total Iterations:", num_iterations)
+        print("Average Time per Iteration:", times["total"] / num_iterations)
+        print("Average Request Time:", times["request"] / num_iterations)
+        print("Average Parse Time:", times["parse"] / num_iterations)
+        print("Number of URLs in parse_set:", len(parse_set))
+        print("Number of URLs in visited_set:", len(visited_set))
+        print("Number of names:", len(names_set))
+        print()
 
 if len(parse_set) == 0:
     print("Scraping completed.")
 else:
     print("Maximum time reached. Scraping stopped.")
-
-print("Total Time:", total_time)
-print("Total Iterations:", num_iterations)
-print("Average Time per Iteration:", total_iterations_time / num_iterations if num_iterations > 0 else 0)
-print("Average Time per Request:", total_request_time / num_iterations if num_iterations > 0 else 0)
-print("Average Time per Parse:", total_parse_time / item_counter if item_counter > 0 else 0)
-print("Average Time per Add:", total_add_time / item_counter if item_counter > 0 else 0)
 
 with open('links.txt', 'a') as f:
     for visited_url in visited_set:
