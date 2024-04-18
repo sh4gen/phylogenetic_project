@@ -1,6 +1,7 @@
 class Node:
-    def __init__(self, value : str, parent = None) -> None:
+    def __init__(self, value: str, info: str = "", parent=None) -> None:
         self.value = value
+        self.info = info
         self.parent = parent
         self.children = []
 
@@ -17,12 +18,12 @@ def parse_taxonomy_data(data):
         info = parts[1].strip()
         
         parent_values = []
-        for value in parts[2].split(";"):
-            stripped_values = value.strip()
-            if stripped_values:
-                parent_values.append(stripped_values)
+        for parent_value in parts[2].split(";"):
+            stripped_value = parent_value.strip()
+            if stripped_value:
+                parent_values.append(stripped_value)
 
-        node = Node(value)
+        node = Node(value, info)
         node_dict[value] = node
 
         for parent_value in parent_values[:-1]:
@@ -46,6 +47,18 @@ def print_tree(node, depth=0):
     for child in node.children:
         print_tree(child, depth + 1)
 
-data =  "2	|	2	|		|\n7	|	7	|	2;	|"
+data =  """
+        2	|	2	|		|
+        7	|	7	|	2;	|
+        5	|	5	|	2;	|
+        12	|	12	|	2; 7;	|
+        10	|	10	|	2; 7;	|
+        6	|	6	|	2; 7;	|
+        9	|	9	|	2; 5;	|
+        15	|	15	|	2; 7; 6;	|
+        11	|	11	|	2; 7; 6;	|
+        4	|	4	|	2; 5; 9;	|
+        """
+
 root_node = parse_taxonomy_data(data)
-print(root_node.value)
+print_tree(root_node)
