@@ -26,7 +26,7 @@ def parse_taxonomy_data(data):
         node = Node(value, info)
         node_dict[value] = node
 
-        for parent_value in parent_values[:-1]:
+        for parent_value in parent_values:
             parent_node = node_dict.get(parent_value)
             if parent_node:
                 node.parent = parent_node
