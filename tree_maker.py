@@ -67,5 +67,3 @@ data =  """
 
 root_node = parse_taxonomy_data(data)
 print_tree(root_node)
-
-
