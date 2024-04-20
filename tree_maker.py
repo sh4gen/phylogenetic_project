@@ -17,21 +17,21 @@ def parse_taxonomy_data(data):
         value = parts[0].strip()
         info = parts[1].strip()
         
-        parent_values = []
-        for parent_value in parts[2].split(";"):
-            stripped_value = parent_value.strip()
-            if stripped_value:
-                parent_values.append(stripped_value)
+        parent_values = parts[2].strip().split(';')
+        parent_values = [pv.strip() for pv in parent_values if pv.strip()]
 
         node = Node(value, info)
         node_dict[value] = node
 
-        for parent_value in parent_values:
+        # Ebeveyn düğümü bul ve çocuk olarak ekle
+        if parent_values:
+            parent_value = parent_values[-1]  # En son ebeveyni al
             parent_node = node_dict.get(parent_value)
             if parent_node:
                 node.parent = parent_node
                 parent_node.add_child(node)
 
+    # Kök düğümü bul
     root = None
     for node in node_dict.values():
         if node.parent is None:
@@ -62,3 +62,5 @@ data =  """
 
 root_node = parse_taxonomy_data(data)
 print_tree(root_node)
+
+
