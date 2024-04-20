@@ -8,11 +8,6 @@ class Node:
     def add_child(self, child):
         self.children.append(child)
 
-    def traverse(self):
-        yield self
-        for child in self.children:
-            yield from child.traverse()
-
 def parse_taxonomy_data(data):
     node_dict = {}
     lines = data.strip().split('\n')
@@ -44,6 +39,7 @@ def parse_taxonomy_data(data):
             break
 
     return root
+
 
 def print_tree(node, depth=0):
     if node is None:
