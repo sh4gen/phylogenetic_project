@@ -8,6 +8,11 @@ class Node:
     def add_child(self, child):
         self.children.append(child)
 
+    def traverse(self):
+        yield self
+        for child in self.children:
+            yield from child.traverse()
+
 def parse_taxonomy_data(data):
     node_dict = {}
     lines = data.strip().split('\n')
@@ -48,17 +53,21 @@ def print_tree(node, depth=0):
         print_tree(child, depth + 1)
 
 data =  """
-        2	|	2	|		|
-        7	|	7	|	2;	|
-        5	|	5	|	2;	|
-        12	|	12	|	2; 7;	|
-        10	|	10	|	2; 7;	|
-        6	|	6	|	2; 7;	|
-        9	|	9	|	2; 5;	|
-        15	|	15	|	2; 7; 6;	|
-        11	|	11	|	2; 7; 6;	|
-        4	|	4	|	2; 5; 9;	|
+        2    |    2    |        |
+        7    |    7    |    2;    |
+        5    |    5    |    2;    |
+        12    |    12    |    7;    |
+        10    |    10    |    7;    |
+        6    |    6    |    7;    |
+        9    |    9    |    5;    |
+        15    |    15    |    6;    |
+        11    |    11    |    6;    |
+        4    |    4    |    9;    |
         """
 
 root_node = parse_taxonomy_data(data)
+
+# node_dict sözlüğüne erişim
+node_dict = {node.value: node for node in root_node.traverse()} 
+
 print_tree(root_node)
