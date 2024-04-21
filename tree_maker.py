@@ -1,8 +1,8 @@
 from graphviz import Digraph
 class Node:
     def __init__(self, value: str, info: str = "", parent=None) -> None:
-        self.value = value
-        self.info = info
+        self.value = value  # isimlendirmeler
+        self.info = info  # isimlendirmeler
         self.parent = parent
         self.children = []
 
@@ -25,7 +25,7 @@ def parse_taxonomy_data(data):
         node_dict[info] = node
 
         if parent_values:
-            parent_value = parent_values[-1]
+            parent_value = parent_values[-1]  #Slicing çalış
             parent_node = node_dict.get(parent_value)
             if parent_node:
                 node.parent = parent_node
@@ -65,6 +65,18 @@ with open('ver.txt') as f:
 root_node = parse_taxonomy_data(data)
 print_tree(root_node)
 
-dot = Digraph(comment='Taxonomy Tree', graph_attr={'size': '1920,1080'})
+# Create a Digraph object with the 'dot' engine, suitable for hierarchical structures
+dot = Digraph(comment='Species Taxonomy', engine='dot', format='svg')
+
+# Graph style attributes
+dot.attr(rankdir='LR')  # TB is top to bottom; size is optional
+
+# Node style attributes
+dot.attr('node', shape='ellipse', style='filled', color='lightgrey', fontname='Helvetica')
+
+# Edge style attributes
+dot.attr('edge', arrowhead='empty', style='solid')
+
 generate_dot(root_node, dot)
-dot.render('taxonomy_tree', format='png', cleanup=True)
+
+dot.render('Primates_taxonomy_tree')
