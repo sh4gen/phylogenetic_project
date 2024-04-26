@@ -1,8 +1,8 @@
 from graphviz import Digraph
 class Node:
-    def __init__(self, value: str, info: str = "", parent=None) -> None:
-        self.value = value  # isimlendirmeler
-        self.info = info  # isimlendirmeler
+    def __init__(self, tax_id: str, scientific_name: str = "", parent=None) -> None:
+        self.tax_id = tax_id
+        self.scientific_name = scientific_name
         self.parent = parent
         self.children = []
 
@@ -15,17 +15,17 @@ def parse_taxonomy_data(data):
 
     for line in lines:
         parts = line.strip().split('|')
-        value = parts[0].strip()
-        info = parts[1].strip()
+        tax_id = parts[0].strip()
+        scientific_name = parts[1].strip()
         
-        parent_values = parts[2].strip().split(';')
-        parent_values = [pv.strip() for pv in parent_values if pv.strip()]
+        lineage = parts[2].strip().split(';')
+        lineage = [pv.strip() for pv in lineage if pv.strip()]
     
-        node = Node(value, info)
-        node_dict[info] = node
+        node = Node(tax_id, scientific_name)
+        node_dict[scientific_name] = node
 
-        if parent_values:
-            parent_value = parent_values[-1]  #Slicing çalış
+        if lineage:
+            parent_value = lineage[-1]
             parent_node = node_dict.get(parent_value)
             if parent_node:
                 node.parent = parent_node
@@ -42,7 +42,7 @@ def parse_taxonomy_data(data):
 def print_tree(node, depth=0):
     if node is None:
         return
-    print("  " * depth + node.info)
+    print("  " * depth + node.scientific_name)
     for child in node.children:
         print_tree(child, depth + 1)
 
@@ -50,8 +50,8 @@ def generate_dot(node, dot, parent_id=None):
     if node is None:
         return
     
-    node_id = node.value
-    dot.node(node_id, node.info)
+    node_id = node.tax_id
+    dot.node(node_id, node.scientific_name)
     
     if parent_id:
         dot.edge(parent_id, node_id)
@@ -59,24 +59,16 @@ def generate_dot(node, dot, parent_id=None):
     for child in node.children:
         generate_dot(child, dot, node_id)
 
-with open('ver.txt') as f:
+with open('primates_taxonomy.txt', encoding='utf-8') as f:
     data = f.read()
 
 root_node = parse_taxonomy_data(data)
 print_tree(root_node)
 
-# Create a Digraph object with the 'dot' engine, suitable for hierarchical structures
+# Dot Section
 dot = Digraph(comment='Species Taxonomy', engine='dot', format='svg')
-
-# Graph style attributes
-dot.attr(rankdir='LR')  # TB is top to bottom; size is optional
-
-# Node style attributes
+dot.attr(rankdir='LR')
 dot.attr('node', shape='ellipse', style='filled', color='lightgrey', fontname='Helvetica')
-
-# Edge style attributes
 dot.attr('edge', arrowhead='empty', style='solid')
-
 generate_dot(root_node, dot)
-
 dot.render('Primates_taxonomy_tree')
